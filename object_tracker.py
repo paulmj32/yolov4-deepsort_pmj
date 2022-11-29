@@ -10,6 +10,7 @@ from absl import app, flags, logging
 from absl.flags import FLAGS
 import core.utils as utils
 from core.yolov4 import filter_boxes
+from core.functions import *
 from tensorflow.python.saved_model import tag_constants
 from core.config import cfg
 from PIL import Image
@@ -37,6 +38,7 @@ flags.DEFINE_float('score', 0.50, 'score threshold')
 flags.DEFINE_boolean('dont_show', False, 'dont show video output')
 flags.DEFINE_boolean('info', False, 'show detailed info of tracked objects')
 flags.DEFINE_boolean('count', False, 'count objects being tracked on screen')
+flags.DEFINE_boolean('plate', False, 'perform license plate recognition')
 
 def main(_argv):
     # Definition of the parameters
@@ -174,9 +176,21 @@ def main(_argv):
                 names.append(class_name)
         names = np.array(names)
         count = len(names)
+
+        #if FLAGS.count:
+        #    cv2.putText(frame, "Objects being tracked: {}".format(count), (5, 35), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
+        #    print("Objects being tracked: {}".format(count))
+
         if FLAGS.count:
-            cv2.putText(frame, "Objects being tracked: {}".format(count), (5, 35), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
-            print("Objects being tracked: {}".format(count))
+            # count objects found
+            counted_classes = count_objects(pred_bbox, by_class = False, allowed_classes=allowed_classes)
+            # loop through dict and print
+            for key, value in counted_classes.items():
+                print("Number of {}s: {}".format(key, value))
+            image = utils.draw_bbox(frame, pred_bbox, FLAGS.info, counted_classes, allowed_classes=allowed_classes, read_plate=FLAGS.plate)
+        else:
+            image = utils.draw_bbox(frame, pred_bbox, FLAGS.info, allowed_classes=allowed_classes, read_plate=FLAGS.plate)    
+        
         # delete detections that are not in allowed_classes
         bboxes = np.delete(bboxes, deleted_indx, axis=0)
         scores = np.delete(scores, deleted_indx, axis=0)
