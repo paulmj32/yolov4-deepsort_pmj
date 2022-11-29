@@ -200,6 +200,10 @@ def main(_argv):
         tracker.predict()
         tracker.update(detections)
 
+        # Initialize counts of interest
+        count_vehicle = int(0)
+        count_people = int(0)
+
         # update tracks
         for track in tracker.tracks:
             if not track.is_confirmed() or track.time_since_update > 1:
@@ -214,9 +218,20 @@ def main(_argv):
             cv2.rectangle(frame, (int(bbox[0]), int(bbox[1]-30)), (int(bbox[0])+(len(class_name)+len(str(track.track_id)))*17, int(bbox[1])), color, -1)
             cv2.putText(frame, class_name + "-" + str(track.track_id),(int(bbox[0]), int(bbox[1]-10)),0, 0.75, (255,255,255),2)
 
+        # update counts of vehicles and people
+            if class_name == 'person':
+                count_people += 1
+            if class_name == 'car' or class_name == 'truck':
+                count_vehicle += 1
+
         # if enable info flag then print details about each track
             if FLAGS.info:
                 print("Tracker ID: {}, Class: {},  BBox Coords (xmin, ymin, xmax, ymax): {}".format(str(track.track_id), class_name, (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))))
+
+        # display counts
+        print("Num. Person(s): {}".format(count_people))
+        print("Num. Vehicle(s): {}".format(count_vehicle))
+        #cv2.putText(img, "Current Vehicle Count: " + str(current_count), (0, 80), 0, 1, (0, 0, 255), 2)
 
         # calculate frames per second of running detections
         fps = 1.0 / (time.time() - start_time)
