@@ -173,6 +173,8 @@ def main(_argv):
             else:
                 names.append(class_name)
         names = np.array(names)
+        print("names): {}".format(names))
+
         count = len(names)
         if FLAGS.count:
             cv2.putText(frame, "Objects being tracked: {}".format(count), (5, 35), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
