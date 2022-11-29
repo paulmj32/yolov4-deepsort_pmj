@@ -91,6 +91,11 @@ def main(_argv):
         out = cv2.VideoWriter(FLAGS.output, codec, fps, (width, height))
 
     frame_num = 0
+
+    # initialize list of total counts of categories of interest
+    list_vehicle = []
+    list_person = []
+
     # while video is running
     while True:
         return_value, frame = vid.read()
@@ -173,8 +178,6 @@ def main(_argv):
             else:
                 names.append(class_name)
         names = np.array(names)
-        print("names): {}".format(names))
-
         count = len(names)
         if FLAGS.count:
             cv2.putText(frame, "Objects being tracked: {}".format(count), (5, 35), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
@@ -202,38 +205,43 @@ def main(_argv):
         tracker.predict()
         tracker.update(detections)
 
-        # Initialize counts of interest
+        # Initialize current counts of categories interest
         count_vehicle = int(0)
-        count_people = int(0)
+        count_person = int(0)
 
         # update tracks
         for track in tracker.tracks:
             if not track.is_confirmed() or track.time_since_update > 1:
                 continue 
             bbox = track.to_tlbr()
-            class_name = track.get_class()
-            
+            class_name = track.get_class()  
         # draw bbox on screen
             color = colors[int(track.track_id) % len(colors)]
             color = [i * 255 for i in color]
             cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color, 2)
             cv2.rectangle(frame, (int(bbox[0]), int(bbox[1]-30)), (int(bbox[0])+(len(class_name)+len(str(track.track_id)))*17, int(bbox[1])), color, -1)
             cv2.putText(frame, class_name + "-" + str(track.track_id),(int(bbox[0]), int(bbox[1]-10)),0, 0.75, (255,255,255),2)
-
-        # update counts of vehicles and people
+        # update current counts and lists of categories of interest
             if class_name == 'person':
-                count_people += 1
+                count_person += 1
+                list_person.append(int(track.track_id)) 
             if class_name == 'car' or class_name == 'truck':
                 count_vehicle += 1
-
+                list_person.append(int(track.track_id))
         # if enable info flag then print details about each track
             if FLAGS.info:
                 print("Tracker ID: {}, Class: {},  BBox Coords (xmin, ymin, xmax, ymax): {}".format(str(track.track_id), class_name, (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))))
 
+        # get total counts from unique set of IDs in list 
+        total_person = len(set(list_person))
+        total_vehicle = len(set(list_vehicle))
+        print("Total Person(s): {}".format(total_person))
+        print("Total Vehicle(s): {}".format(total_vehicle))
+
         # display counts
-        print("Num. Person(s): {}".format(count_people))
+        print("Num. Person(s): {}".format(count_person))
         print("Num. Vehicle(s): {}".format(count_vehicle))
-        cv2.putText(frame, "Person(s): {}".format(count_people), (5, 50), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
+        cv2.putText(frame, "Person(s): {}".format(count_person), (5, 50), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
         cv2.putText(frame, "Vehicle(s): {}".format(count_vehicle), (5, 100), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
 
         # calculate frames per second of running detections
