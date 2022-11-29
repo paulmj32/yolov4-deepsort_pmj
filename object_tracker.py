@@ -231,7 +231,8 @@ def main(_argv):
         # display counts
         print("Num. Person(s): {}".format(count_people))
         print("Num. Vehicle(s): {}".format(count_vehicle))
-        #cv2.putText(img, "Current Vehicle Count: " + str(current_count), (0, 80), 0, 1, (0, 0, 255), 2)
+        cv2.putText(frame, "Person(s): {}".format(count_people), (5, 50), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
+        cv2.putText(frame, "Vehicle(s): {}".format(count_vehicle), (5, 100), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
 
         # calculate frames per second of running detections
         fps = 1.0 / (time.time() - start_time)
