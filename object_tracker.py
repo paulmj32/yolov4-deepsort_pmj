@@ -228,7 +228,7 @@ def main(_argv):
                 list_person.append(int(track.track_id)) 
             if class_name == 'car' or class_name == 'truck':
                 count_vehicle += 1
-                list_person.append(int(track.track_id))
+                list_vehicle.append(int(track.track_id))
         # if enable info flag then print details about each track
             if FLAGS.info:
                 print("Tracker ID: {}, Class: {},  BBox Coords (xmin, ymin, xmax, ymax): {}".format(str(track.track_id), class_name, (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))))
