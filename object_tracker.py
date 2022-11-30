@@ -37,6 +37,7 @@ flags.DEFINE_float('score', 0.50, 'score threshold')
 flags.DEFINE_boolean('dont_show', False, 'dont show video output')
 flags.DEFINE_boolean('info', False, 'show detailed info of tracked objects')
 flags.DEFINE_boolean('count', False, 'count objects being tracked on screen')
+flags.DEFINE_string('count_cat', 'total', 'total or current')
 
 def main(_argv):
     # Definition of the parameters
@@ -179,9 +180,9 @@ def main(_argv):
                 names.append(class_name)
         names = np.array(names)
         count = len(names)
-        if FLAGS.count:
-            cv2.putText(frame, "Objects being tracked: {}".format(count), (5, 35), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
-            print("Objects being tracked: {}".format(count))
+        #if FLAGS.count:
+        #    cv2.putText(frame, "Objects being tracked: {}".format(count), (5, 35), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
+        #    print("Objects being tracked: {}".format(count))
         # delete detections that are not in allowed_classes
         bboxes = np.delete(bboxes, deleted_indx, axis=0)
         scores = np.delete(scores, deleted_indx, axis=0)
@@ -231,18 +232,24 @@ def main(_argv):
         # if enable info flag then print details about each track
             if FLAGS.info:
                 print("Tracker ID: {}, Class: {},  BBox Coords (xmin, ymin, xmax, ymax): {}".format(str(track.track_id), class_name, (int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))))
-
+        
         # get total counts from unique set of IDs in list 
         total_person = len(set(list_person))
         total_vehicle = len(set(list_vehicle))
+
+        # print and display counts in each category 
+        print("Num. Person(s): {}".format(count_person))
+        print("Num. Vehicle(s): {}".format(count_vehicle))
         print("Total Person(s): {}".format(total_person))
         print("Total Vehicle(s): {}".format(total_vehicle))
 
-        # display counts
-        print("Num. Person(s): {}".format(count_person))
-        print("Num. Vehicle(s): {}".format(count_vehicle))
-        cv2.putText(frame, "Person(s): {}".format(count_person), (5, 50), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
-        cv2.putText(frame, "Vehicle(s): {}".format(count_vehicle), (5, 100), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
+        # display counts based on FLAG.count_cat == 'total' or 'current'
+        if FLAGS.count_cat == 'total':
+            cv2.putText(frame, "Total Person(s): {}".format(total_person), (5, 50), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
+            cv2.putText(frame, "Total Vehicle(s): {}".format(total_vehicle), (5, 100), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
+        if FLAGS.count_cat == 'current':
+            cv2.putText(frame, "Person(s): {}".format(count_person), (5, 50), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
+            cv2.putText(frame, "Vehicle(s): {}".format(count_vehicle), (5, 100), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (0, 255, 0), 2)
 
         # calculate frames per second of running detections
         fps = 1.0 / (time.time() - start_time)
